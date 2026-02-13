@@ -17,22 +17,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-      }}
-    >
-      <html lang="en">
-        <body className="dotted-background">
+    <html lang="en" suppressHydrationWarning>
+      <ClerkProvider
+        appearance={{
+          baseTheme: dark,
+        }}
+      >
+        <body className="dotted-background px-10">
           <ThemeProvider attribute="class" defaultTheme="dark">
             <Header />
-            <main className="min-h-screen">
-              {children}
-            </main>
+            <main className="min-h-screen">{children}</main>
             <Footer />
           </ThemeProvider>
         </body>
-      </html>
-    </ClerkProvider>
+      </ClerkProvider>
+    </html>
   );
 }
+
+export const dynamic = "force-dynamic";
