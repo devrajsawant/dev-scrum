@@ -134,3 +134,8 @@
 .gradient-title {
   @apply font-extrabold bg-gradient-to-br from-blue-500 via-blue-100 to-blue-400 bg-clip-text tracking-tighter text-transparent pr-2 pb-2;
 }
+
+.gradient-title-purple {
+  @apply font-bold bg-gradient-to-br from-green-400 via-gray-100 to-green-400 bg-clip-text tracking-tighter text-transparent pr-2 pb-2;
+}
+
