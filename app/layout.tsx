@@ -26,7 +26,7 @@ export default function RootLayout({
         <body className="dotted-background">
           <ThemeProvider attribute="class" defaultTheme="dark">
             <Header />
-            <main className="h-screen">
+            <main className="min-h-screen">
               {children}
             </main>
             <Footer />
