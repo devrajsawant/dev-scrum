@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Dev Scrum",
@@ -27,6 +28,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="dark">
             <Header />
             <main className="min-h-screen">{children}</main>
+            <Toaster richColors/>
             <Footer />
           </ThemeProvider>
         </body>
