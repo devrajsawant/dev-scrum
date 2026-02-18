@@ -9,8 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import MDEditor from "@uiw/react-md-editor";
-import UserAvatar from "./user-avatar";
-import useFetch from "@/hooks/use-fetch";
 import { useOrganization, useUser } from "@clerk/nextjs";
 import {
   Select,
@@ -22,9 +20,10 @@ import {
 import { BarLoader } from "react-spinners";
 import { ExternalLink } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-
-import statuses from "@/data/status";
 import { deleteIssue, updateIssue } from "@/actions/issues";
+import useFetch from "@/hooks/useFetch";
+import UserAvatar from "./userAvatar";
+import statuses from "../../../../data/status.json"
 
 const priorityOptions = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 

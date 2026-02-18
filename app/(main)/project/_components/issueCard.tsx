@@ -93,7 +93,7 @@ export default function IssueCard({
         </CardFooter>
       </Card>
 
-      {/* {isDialogOpen && (
+      {isDialogOpen && (
         <IssueDetailsDialog
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
@@ -102,7 +102,7 @@ export default function IssueCard({
           onUpdate={onUpdateHandler}
           borderCol={priorityColor[issue.priority]}
         />
-      )} */}
+      )}
     </>
   );
 }
