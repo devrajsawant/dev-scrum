@@ -2,91 +2,118 @@
 
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 
-export async function getIssuesForSprint(sprintId: string) {
+export type IssueWithUsers = Prisma.IssueGetPayload<{
+  include: {
+    assignee: true;
+    reporter: true;
+  };
+}>;
+
+export async function getIssuesForSprint(
+  sprintId: string,
+): Promise<IssueWithUsers[]> {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
     throw new Error("Unauthorized");
   }
 
-  const issues = await db.issue.findMany({
-    where: { sprintId: sprintId },
+  return db.issue.findMany({
+    where: { sprintId },
     orderBy: [{ status: "asc" }, { order: "asc" }],
     include: {
       assignee: true,
       reporter: true,
     },
   });
-
-  return issues;
 }
 
-export async function createIssue(projectId: string, data: any) {
+type CreateIssueInput = {
+  title: string;
+  description?: string | null;
+  status: string;
+  priority: string;
+  sprintId: string;
+  assigneeId?: string | null;
+};
+
+export async function createIssue(
+  projectId: string,
+  data: CreateIssueInput,
+): Promise<IssueWithUsers> {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
     throw new Error("Unauthorized");
   }
-  // get user
-  const user = await db.user.findUnique({ where: { clerkUserId: userId } });
 
-  // get last issue here to find the order and then to append new issue below it
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
   const lastIssue = await db.issue.findFirst({
     where: { projectId, status: data.status },
     orderBy: { order: "desc" },
   });
 
-  // if last issue available, add the new order below it (order + 1)
   const newOrder = lastIssue ? lastIssue.order + 1 : 0;
 
-  const issue = await db.issue.create({
+  return db.issue.create({
     data: {
       title: data.title,
       description: data.description,
       status: data.status,
       priority: data.priority,
-      projectId: projectId,
+      projectId,
       sprintId: data.sprintId,
       reporterId: user.id,
-      assigneeId: data.assigneeId || null,
+      assigneeId: data.assigneeId ?? null,
       order: newOrder,
     },
     include: {
-      // to get the whole data regarding the assignne and reporter and not just Id
       assignee: true,
       reporter: true,
     },
   });
-
-  return issue;
 }
 
-export async function updateIssueOrder(updatedIssues) {
+type UpdateOrderInput = {
+  id: string;
+  status: string;
+  order: number;
+};
+
+export async function updateIssueOrder(
+  updatedIssues: UpdateOrderInput[],
+): Promise<{ success: true }> {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
     throw new Error("Unauthorized");
   }
 
-  // Start a transaction
-  await db.$transaction(async (prisma) => {
-    // Update each issue
-    for (const issue of updatedIssues) {
-      await prisma.issue.update({
+  await db.$transaction(
+    updatedIssues.map((issue) =>
+      db.issue.update({
         where: { id: issue.id },
         data: {
           status: issue.status,
           order: issue.order,
         },
-      });
-    }
-  });
+      }),
+    ),
+  );
 
   return { success: true };
 }
 
-export async function deleteIssue(issueId: string) {
+export async function deleteIssue(issueId: string): Promise<{ success: true }> {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
@@ -117,46 +144,50 @@ export async function deleteIssue(issueId: string) {
     throw new Error("You don't have permission to delete this issue");
   }
 
-  await db.issue.delete({ where: { id: issueId } });
+  await db.issue.delete({
+    where: { id: issueId },
+  });
 
   return { success: true };
 }
 
-export async function updateIssue(issueId, data) {
+type UpdateIssueInput = {
+  status?: string;
+  priority?: string;
+};
+
+export async function updateIssue(
+  issueId: string,
+  data: UpdateIssueInput,
+): Promise<IssueWithUsers> {
   const { userId, orgId } = await auth();
 
   if (!userId || !orgId) {
     throw new Error("Unauthorized");
   }
 
-  try {
-    const issue = await db.issue.findUnique({
-      where: { id: issueId },
-      include: { project: true },
-    });
+  const issue = await db.issue.findUnique({
+    where: { id: issueId },
+    include: { project: true },
+  });
 
-    if (!issue) {
-      throw new Error("Issue not found");
-    }
-
-    if (issue.project.organizationId !== orgId) {
-      throw new Error("Unauthorized");
-    }
-
-    const updatedIssue = await db.issue.update({
-      where: { id: issueId },
-      data: {
-        status: data.status,
-        priority: data.priority,
-      },
-      include: {
-        assignee: true,
-        reporter: true,
-      },
-    });
-
-    return updatedIssue;
-  } catch (error) {
-    throw new Error("Error updating issue: " + error.message);
+  if (!issue) {
+    throw new Error("Issue not found");
   }
+
+  if (issue.project.organizationId !== orgId) {
+    throw new Error("Unauthorized");
+  }
+
+  return db.issue.update({
+    where: { id: issueId },
+    data: {
+      status: data.status,
+      priority: data.priority,
+    },
+    include: {
+      assignee: true,
+      reporter: true,
+    },
+  });
 }

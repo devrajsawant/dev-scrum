@@ -8,7 +8,11 @@ import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function DeleteProject({ projectId }) {
+type DeleteProjectProps = {
+  projectId: string;
+};
+
+export default function DeleteProject({ projectId }: DeleteProjectProps) {
   const { membership } = useOrganization();
   const router = useRouter();
 

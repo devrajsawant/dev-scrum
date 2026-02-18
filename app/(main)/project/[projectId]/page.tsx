@@ -2,10 +2,17 @@ import { notFound } from "next/navigation";
 import { getProject } from "@/actions/project";
 import SprintCreationForm from "../_components/createSprint";
 import SprintBoard from "../_components/sprintBoard";
+import { Project } from "@/types/types";
 
-export default async function ProjectPage({ params }) {
+type ProjectPageProps = {
+  params: {
+    projectId: string;
+  };
+};
+
+export default async function ProjectPage({ params }: ProjectPageProps) {
   const { projectId } = params;
-  const project = await getProject(projectId);
+  const project: Project | null = await getProject(projectId);
 
   if (!project) {
     notFound();
